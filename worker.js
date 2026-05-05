@@ -13,3 +13,15 @@ export function extractServerResponseData(html) {
 
   return JSON.parse(data)
 }
+
+export default {
+  async fetch(request) {
+    const html = `<meta name="server-response" content="{&quot;test&quot;:1}">`
+
+    const result = extractServerResponseData(html)
+
+    return new Response(JSON.stringify(result), {
+      headers: { "content-type": "application/json" }
+    })
+  }
+}
