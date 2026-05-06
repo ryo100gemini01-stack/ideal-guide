@@ -1,14 +1,24 @@
 export default {
   async fetch() {
     const res = await fetch("https://nico-rank.com/api/ranking?game&period=24h")
-
     const buffer = await res.arrayBuffer()
 
-    // Shift_JISとしてデコード
-    const decoder = new TextDecoder("shift_jis")
-    const text = decoder.decode(buffer)
+    let text
 
-    const data = JSON.parse(text)
+    try {
+      const decoder = new TextDecoder("shift_jis")
+      text = decoder.decode(buffer)
+    } catch (e) {
+      // フォールバック（とりあえずUTF-8）
+      text = new TextDecoder().decode(buffer)
+    }
+
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch (e) {
+      return new Response(text, { status: 500 })
+    }
 
     return Response.json(data)
   }
