@@ -19,13 +19,19 @@ export default {
       }
     }
 
-    data.items.forEach(item => {
-      item.title = fix(item.title)
-      item.tags = item.tags.map(fix)
-      item.tagDetails.forEach(tag => {
-        tag.name = fix(tag.name)
-      })
+data.items?.forEach(item => {
+  item.title = fix(item.title)
+
+  if (item.tags) {
+    item.tags = item.tags.map(fix)
+  }
+
+  if (item.tagDetails) {
+    item.tagDetails.forEach(tag => {
+      tag.name = fix(tag.name)
     })
+  }
+})
 
     return Response.json(data)
   }
