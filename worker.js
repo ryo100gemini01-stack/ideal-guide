@@ -19,7 +19,7 @@ export default {
           "User-Agent": "cf-worker-safe-fetch/1.0",
         },
 cf: {
-  cacheTtl: 60, // 1分キャッシュ
+  cacheTtl: 300, // 5分キャッシュ
   cacheEverything: true,
 }
       })
