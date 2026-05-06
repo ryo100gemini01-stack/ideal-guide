@@ -16,6 +16,7 @@ export default {
         headers: {
           "Accept": "application/json",
           "Accept-Encoding": "identity",
+          "access-control-allow-origin": "*",
           "User-Agent": "cf-worker-safe-fetch/1.0",
         },
 cf: {
