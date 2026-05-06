@@ -1,9 +1,51 @@
+// genre → nico-rank query mapping
+const GENRE_TO_QUERY = {
+  all: null,
+  game: "game",
+  anime: "anime",
+  vocaloid: "vocaloid",
+  voicesynthesis: "voicesynthesis",
+  entertainment: "entertainment",
+  music: "music",
+  sing: "sing",
+  dance: "dance",
+  play: "play",
+  commentary: "commentary",
+  cooking: "cooking",
+  travel: "travel",
+  nature: "nature",
+  vehicle: "vehicle",
+  technology: "technology",
+  society: "society",
+  mmd: "mmd",
+  vtuber: "vtuber",
+  radio: "radio",
+  sports: "sports",
+  animal: "animal",
+  other: "other",
+  custom: null,
+}
+
 export default {
   async fetch(request) {
-    const url = new URL("https://nico-rank.com/api/ranking?game&period=24h")
+    const url = new URL(request.url)
+
+    const genre = url.searchParams.get("genre") || "game"
+    const period = url.searchParams.get("period") || "24h"
+
+    const upstream = new URL("https://nico-rank.com/api/ranking")
+
+    // --- genre変換 ---
+    const queryKey = GENRE_TO_QUERY[genre]
+
+    if (queryKey) {
+      upstream.searchParams.set(queryKey, "")
+    }
+
+    upstream.searchParams.set("period", period)
 
     try {
-      const res = await fetch(url.toString(), {
+      const res = await fetch(upstream.toString(), {
         headers: {
           "Accept": "application/json",
           "Accept-Encoding": "identity",
@@ -19,11 +61,10 @@ export default {
         return new Response(`Upstream error: ${res.status}`, { status: 502 })
       }
 
-      // ★重要：stream破損対策（arrayBufferで完全取得）
+      // --- 安定取得 ---
       const buffer = await res.arrayBuffer()
       const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer)
 
-      // ★JSON破損チェック（途中で切れてても検出）
       let data
       try {
         data = JSON.parse(text)
@@ -45,30 +86,26 @@ export default {
         )
       }
 
-      // ★文字化け軽減（必要なら）
+      // --- 文字化け補正（軽量版）---
       const fix = (str) => {
         if (typeof str !== "string") return str
         try {
-          return decodeURIComponent(
-            escape(str)
-          )
+          return decodeURIComponent(escape(str))
         } catch {
           return str
         }
       }
 
       if (Array.isArray(data.items)) {
-        data.items = data.items.map((item) => {
-          return {
-            ...item,
-            title: fix(item.title),
-            tags: item.tags?.map(fix),
-            tagDetails: item.tagDetails?.map((t) => ({
-              ...t,
-              name: fix(t.name),
-            })),
-          }
-        })
+        data.items = data.items.map((item) => ({
+          ...item,
+          title: fix(item.title),
+          tags: item.tags?.map(fix),
+          tagDetails: item.tagDetails?.map((t) => ({
+            ...t,
+            name: fix(t.name),
+          })),
+        }))
       }
 
       return new Response(JSON.stringify(data), {
