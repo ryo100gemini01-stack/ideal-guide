@@ -1,31 +1,3 @@
-// genre → nico-rank query mapping
-const GENRE_TO_QUERY = {
-  all: null,
-  game: "game",
-  anime: "anime",
-  vocaloid: "vocaloid",
-  voicesynthesis: "voicesynthesis",
-  entertainment: "entertainment",
-  music: "music",
-  sing: "sing",
-  dance: "dance",
-  play: "play",
-  commentary: "commentary",
-  cooking: "cooking",
-  travel: "travel",
-  nature: "nature",
-  vehicle: "vehicle",
-  technology: "technology",
-  society: "society",
-  mmd: "mmd",
-  vtuber: "vtuber",
-  radio: "radio",
-  sports: "sports",
-  animal: "animal",
-  other: "other",
-  custom: null,
-}
-
 export default {
   async fetch(request) {
     const url = new URL(request.url)
@@ -33,24 +5,14 @@ export default {
     const genre = url.searchParams.get("genre") || "game"
     const period = url.searchParams.get("period") || "24h"
 
-    const base = "https://nico-rank.com/api/ranking"
+    const upstream = new URL("https://nico-rank.com/api/ranking")
 
-    // --- genre変換 ---
-    const queryKey = GENRE_TO_QUERY[genre]
-
-    const params = []
-
-    // ★ここが修正ポイント（game=&period= → game&period=）
-    if (queryKey) {
-      params.push(queryKey)
-    }
-
-    params.push(`period=${period}`)
-
-    const upstreamUrl = `${base}?${params.join("&")}`
+    // ★重要：API仕様に合わせてそのまま渡す
+    upstream.searchParams.set("genre", genre)
+    upstream.searchParams.set("period", period)
 
     try {
-      const res = await fetch(upstreamUrl, {
+      const res = await fetch(upstream.toString(), {
         headers: {
           "Accept": "application/json",
           "Accept-Encoding": "identity",
