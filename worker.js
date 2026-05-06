@@ -1,25 +1,18 @@
 export default {
   async fetch() {
-    const res = await fetch("https://nico-rank.com/api/ranking?game&period=24h")
+    const res = await fetch("https://nico-rank.com/api/ranking?game&period=24h", {
+      headers: {
+        "Accept-Encoding": "identity" // ← これが重要
+      }
+    })
 
-    const buffer = await res.arrayBuffer()
-
-    let text
+    const text = await res.text()
 
     try {
-      text = new TextDecoder("shift-jis").decode(buffer)
+      const data = JSON.parse(text)
+      return Response.json(data)
     } catch (e) {
-      // ここで落ちてる可能性が高い
-      return new Response("shift-jis decode failed: " + e.message)
+      return new Response(text.slice(0, 1000), { status: 500 })
     }
-
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch (e) {
-      return new Response("JSON parse failed: " + e.message + "\n\n" + text.slice(0, 200))
-    }
-
-    return Response.json(data)
   }
 }
