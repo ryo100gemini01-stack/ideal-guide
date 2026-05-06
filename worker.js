@@ -33,19 +33,24 @@ export default {
     const genre = url.searchParams.get("genre") || "game"
     const period = url.searchParams.get("period") || "24h"
 
-    const upstream = new URL("https://nico-rank.com/api/ranking")
+    const base = "https://nico-rank.com/api/ranking"
 
     // --- genre変換 ---
     const queryKey = GENRE_TO_QUERY[genre]
 
+    const params = []
+
+    // ★ここが修正ポイント（game=&period= → game&period=）
     if (queryKey) {
-      upstream.searchParams.set(queryKey, "")
+      params.push(queryKey)
     }
 
-    upstream.searchParams.set("period", period)
+    params.push(`period=${period}`)
+
+    const upstreamUrl = `${base}?${params.join("&")}`
 
     try {
-      const res = await fetch(upstream.toString(), {
+      const res = await fetch(upstreamUrl, {
         headers: {
           "Accept": "application/json",
           "Accept-Encoding": "identity",
@@ -86,7 +91,7 @@ export default {
         )
       }
 
-      // --- 文字化け補正（軽量版）---
+      // --- 文字化け補正 ---
       const fix = (str) => {
         if (typeof str !== "string") return str
         try {
