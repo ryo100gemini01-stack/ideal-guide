@@ -1,27 +1,15 @@
-export function extractServerResponseData(html) {
-  const metaMatch = html.match(/<meta name="server-response" content="([^"]+)"/)
-  if (!metaMatch?.[1]) throw new Error('not found')
-
-  let data = metaMatch[1]
-
-  data = data
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&#39;/g, "'")
-
-  return JSON.parse(data)
-}
-
 export default {
-  async fetch(request) {
-    const html = `<meta name="server-response" content="{&quot;test&quot;:1}">`
+  async fetch() {
+    const res = await fetch("https://nico-rank.com/api/ranking?game&period=24h")
 
-    const result = extractServerResponseData(html)
+    const buffer = await res.arrayBuffer()
 
-    return new Response(JSON.stringify(result), {
-      headers: { "content-type": "application/json" }
-    })
+    // Shift_JISとしてデコード
+    const decoder = new TextDecoder("shift_jis")
+    const text = decoder.decode(buffer)
+
+    const data = JSON.parse(text)
+
+    return Response.json(data)
   }
 }
