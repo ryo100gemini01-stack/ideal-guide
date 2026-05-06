@@ -4,8 +4,16 @@ export default {
     const data = await res.json()
 
     function fix(str) {
+      if (!str) return str
+
       try {
-        return decodeURIComponent(escape(str))
+        // 文字列 → バイト列に戻す（Latin1扱い）
+        const bytes = new Uint8Array(
+          Array.from(str).map(c => c.charCodeAt(0))
+        )
+
+        // UTF-8として再デコード
+        return new TextDecoder("utf-8").decode(bytes)
       } catch {
         return str
       }
