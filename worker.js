@@ -18,10 +18,10 @@ export default {
           "Accept-Encoding": "identity",
           "User-Agent": "cf-worker-safe-fetch/1.0",
         },
-        cf: {
-          cacheTtl: 0,
-          cacheEverything: false,
-        },
+cf: {
+  cacheTtl: 60, // 1分キャッシュ
+  cacheEverything: true,
+}
       })
 
       if (!res.ok) {
